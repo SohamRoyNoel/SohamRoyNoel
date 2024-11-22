@@ -53,7 +53,7 @@ Hi there! I'm a passionate software developer dedicated to building scalable, ef
 </td>
 <td valign="top" width="50%">
 
-### **🧠 System Design & Principles**
+### **🧠 System Design & Principles**  
 - SOLID Architecture Principles  
 - Serverless Solutions (SST)  
 - Elastic Stack Utilization  
