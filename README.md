@@ -12,6 +12,7 @@ Hi there! I'm a passionate software developer dedicated to building scalable, ef
 
 ### **🔹 Development & Programming**
 - 🟦 **JavaScript & TypeScript**
+- 🔮 **Java & Spring Boot**
 - 🖋 **REST & GraphQL APIs**
 - 🟢 **Node.js (Express, NestJS)**
 - 🧩 **TypeORM & Microservices**
@@ -75,7 +76,8 @@ Hi there! I'm a passionate software developer dedicated to building scalable, ef
 
 ### 📬 **Let’s Connect!**
 - 📧 **Email**: [noelleroy720@gmail.com](mailto:noelleroy720@gmail.com)  
-- 🌐 **LinkedIn**: [linkedin.com/in/dev-soham](https://www.linkedin.com/in/dev-soham/)  
+- 🌐 **LinkedIn**: [linkedin.com/in/dev-soham](https://www.linkedin.com/in/dev-soham/)
+- 👨🏻‍💻 **Portfolio**: [https://sohamroy.com/)  
 - 📞 **Phone**: +91 9038897580  
 
 Together, we can turn ideas into reality! 💻  
