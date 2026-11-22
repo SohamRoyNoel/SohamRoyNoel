@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soham Roy — Technical Arsenal (interactive 3D)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Space+Grotesk:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0714;--bg2:#120b1f;--card:#150f24;--accent:#a855f7;--accent2:#c084fc;--pink:#e879f9;--amber:#eab308;
+  --text:#f3e8ff;--muted:#ac97ca;--dim:#6b5b85;--border:rgba(168,85,247,.18);
+  --font-display:"Syne",sans-serif;--font-body:"Space Grotesk",sans-serif;--font-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.5;overflow-x:hidden;
+  background-image:radial-gradient(900px 500px at 15% -5%,rgba(168,85,247,.18),transparent 60%),radial-gradient(800px 500px at 90% 30%,rgba(232,121,249,.10),transparent 60%)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+header{padding:64px 0 28px}
+.kicker{font-family:var(--font-mono);color:var(--accent2);letter-spacing:.3em;font-size:13px}
+h1{font-family:var(--font-display);font-size:clamp(40px,7vw,76px);line-height:1;margin:14px 0 14px;letter-spacing:-.02em}
+h1 em{font-style:normal;background:linear-gradient(90deg,#e879f9,#a855f7);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{color:var(--muted);max-width:640px;font-size:17px}
+.hint{display:inline-flex;gap:10px;align-items:center;margin-top:20px;font-family:var(--font-mono);font-size:12px;color:var(--accent2);
+  border:1px solid var(--border);border-radius:999px;padding:7px 14px;background:rgba(21,15,36,.7)}
+.hint i{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse 1.8s infinite}
+@keyframes pulse{50%{opacity:.3}}
+nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);background:rgba(10,7,20,.72);border-bottom:1px solid var(--border)}
+nav .wrap{display:flex;gap:6px;overflow-x:auto;padding-top:10px;padding-bottom:10px}
+nav a{font-family:var(--font-mono);font-size:12px;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap;border:1px solid transparent;transition:.2s}
+nav a:hover{color:var(--text);border-color:var(--border);background:var(--card)}
+section{padding:56px 0 20px}
+h2{font-family:var(--font-mono);font-size:13px;letter-spacing:.3em;color:var(--accent2);font-weight:600}
+h3{font-family:var(--font-display);font-size:30px;margin:8px 0 6px}
+.sub{color:var(--muted);margin-bottom:26px;max-width:640px}
+
+/* ---------- view 1: tilt slabs ---------- */
+.slabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px;perspective:1300px}
+.slab{--c:#a855f7;position:relative;border-radius:20px;padding:18px 18px 16px;background:linear-gradient(145deg,rgba(21,15,36,.95),rgba(10,7,20,.95));
+  border:1px solid color-mix(in srgb,var(--c) 40%,transparent);transform-style:preserve-3d;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s;
+  box-shadow:0 20px 40px -20px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.05)}
+.slab.on{box-shadow:0 40px 60px -25px color-mix(in srgb,var(--c) 55%,transparent),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .08s}
+.slab::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(260px 160px at var(--mx,50%) var(--my,0%),color-mix(in srgb,var(--c) 28%,transparent),transparent 70%);opacity:0;transition:opacity .3s;pointer-events:none}
+.slab.on::before{opacity:1}
+.slab h4{font-family:var(--font-mono);font-size:13px;color:var(--c);display:flex;align-items:center;gap:10px;margin-bottom:14px;transform:translateZ(18px);letter-spacing:.04em}
+.slab h4 b{display:inline-block;width:6px;height:20px;border-radius:3px;background:var(--c);box-shadow:0 0 12px var(--c)}
+.slab h4 span{margin-left:auto;color:var(--dim);font-weight:400}
+.chips{display:flex;flex-wrap:wrap;gap:10px 9px;transform-style:preserve-3d}
+.chip{--c:#a855f7;--t:#fff;font-family:var(--font-mono);font-size:12px;font-weight:600;padding:7px 12px;border-radius:9px;color:var(--t);cursor:default;border:0;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 100%,#fff 22%),var(--c) 55%,color-mix(in srgb,var(--c) 100%,#000 25%));
+  transform:translateZ(26px);transform-style:preserve-3d;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s,filter .2s;
+  box-shadow:0 5px 0 color-mix(in srgb,var(--c) 45%,#000),0 10px 14px -6px rgba(0,0,0,.7)}
+.chip:hover{transform:translateZ(58px) translateY(-3px) scale(1.12);filter:saturate(1.2) brightness(1.1);
+  box-shadow:0 8px 0 color-mix(in srgb,var(--c) 45%,#000),0 22px 26px -8px color-mix(in srgb,var(--c) 70%,transparent)}
+.slabs.focus .slab:not(.on){opacity:.55;filter:saturate(.7)}
+
+/* ---------- canvases ---------- */
+.stage{position:relative;border-radius:22px;border:1px solid var(--border);overflow:hidden;
+  background:linear-gradient(160deg,#150f24,#0a0714);box-shadow:0 30px 60px -30px rgba(168,85,247,.35)}
+.stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 35px,rgba(168,85,247,.05) 35px 36px),repeating-linear-gradient(90deg,transparent 0 35px,rgba(168,85,247,.05) 35px 36px)}
+canvas{display:block;width:100%;touch-action:pan-y;position:relative;z-index:1;cursor:grab}
+.card{position:absolute;z-index:3;right:16px;top:16px;width:min(280px,60%);padding:14px 16px;border-radius:14px;border:1px solid var(--border);
+  background:rgba(10,7,20,.82);backdrop-filter:blur(10px);font-family:var(--font-mono);font-size:12px;color:var(--muted);transition:border-color .2s}
+.card b{display:block;font-size:13px;margin-bottom:6px;color:var(--text)}
+.card p{line-height:1.7}
+.donutwrap{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+.legend{position:relative;z-index:2;padding:30px 30px 30px 6px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+.lg{display:grid;grid-template-columns:14px 1fr auto;gap:4px 12px;align-items:center;padding:8px 10px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:.2s;font-family:var(--font-mono);font-size:13px}
+.lg i{width:14px;height:14px;border-radius:4px}
+.lg strong{font-weight:800}
+.lg .bar{grid-column:2/4;height:7px;border-radius:4px;background:#150f24;overflow:hidden;border:1px solid var(--border)}
+.lg .bar u{display:block;height:100%;border-radius:4px;transition:width .6s}
+.lg.on{background:rgba(168,85,247,.1);border-color:var(--border);transform:translateX(-6px)}
+@media(max-width:760px){.donutwrap{grid-template-columns:1fr}.legend{padding:0 20px 24px}}
+
+/* ---------- view 4: cube heatmap ---------- */
+.board{position:relative;padding:34px 56px 22px;perspective:1800px;perspective-origin:50% 35%}
+@media(max-width:820px){.board{overflow-x:auto}}
+.grid3d{min-width:760px;transform-style:preserve-3d;transform-origin:50% 40%;transition:transform .25s ease-out;will-change:transform}
+.hrow{display:grid;grid-template-columns:230px repeat(6,1fr);align-items:center;padding:6px 8px;border-radius:10px;transform-style:preserve-3d;transition:background .2s}
+.hrow.head{font-family:var(--font-mono);font-size:12px;margin-bottom:6px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.hrow.head div{text-align:center;transition:.2s;transform:translateZ(10px)}
+.hrow.head div small{display:block;color:var(--dim);font-size:10px}
+.hrow.head div.hl{color:var(--accent2);text-shadow:0 0 14px var(--accent)}
+.hrow.hl{background:rgba(168,85,247,.09)}
+.hname{font-family:var(--font-mono);font-size:12.5px;font-weight:600;display:flex;gap:10px;align-items:center;transform:translateZ(8px)}
+.hname b{width:5px;height:16px;border-radius:3px;background:var(--c)}
+.hcell{height:42px;display:flex;align-items:center;justify-content:center;transform-style:preserve-3d}
+.empty{width:18px;height:7px;border-radius:4px;background:var(--dim);opacity:.28}
+.cube{--c:#a855f7;--d:20px;position:relative;width:44px;height:26px;transform-style:preserve-3d;transition:transform .22s cubic-bezier(.2,.8,.2,1);cursor:default}
+.cube div{position:absolute;backface-visibility:hidden}
+.cube .fr{inset:0;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 100%,#fff 18%),var(--c));transform:translateZ(var(--d));border-radius:2px;box-shadow:0 0 0 1px rgba(255,255,255,.14) inset}
+.cube .tp{left:0;top:0;width:100%;height:var(--d);background:color-mix(in srgb,var(--c) 100%,#fff 38%);transform-origin:top;transform:rotateX(90deg)}
+.cube .lf{left:0;top:0;width:var(--d);height:100%;background:color-mix(in srgb,var(--c) 100%,#000 45%);transform-origin:left;transform:rotateY(-90deg)}
+.cube .rt{right:0;top:0;width:var(--d);height:100%;background:color-mix(in srgb,var(--c) 100%,#000 42%);transform-origin:right;transform:rotateY(90deg)}
+.cube .bk{inset:0;background:color-mix(in srgb,var(--c) 100%,#000 60%)}
+.cube:hover{transform:translateZ(34px) scale(1.12)}
+.cube:hover .fr{box-shadow:0 0 0 1px rgba(255,255,255,.4) inset,0 0 26px var(--c)}
+.hlegend{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11.5px;color:var(--muted);position:relative;z-index:2}
+.hlegend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:7px;vertical-align:-2px}
+
+/* tooltip */
+#tip{position:fixed;z-index:50;pointer-events:none;padding:8px 12px;border-radius:10px;font-family:var(--font-mono);font-size:12px;color:var(--text);
+  background:rgba(10,7,20,.94);border:1px solid var(--tc,var(--accent));box-shadow:0 10px 30px -10px var(--tc,var(--accent));
+  opacity:0;transform:translate(-50%,-130%) scale(.92);transition:opacity .15s,transform .15s;white-space:nowrap}
+#tip.show{opacity:1;transform:translate(-50%,-130%) scale(1)}
+#tip small{display:block;color:var(--muted);font-size:10.5px}
+footer{padding:50px 0 70px;text-align:center;color:var(--dim);font-family:var(--font-mono);font-size:12px}
+footer a{color:var(--accent2);text-decoration:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.hint i{animation:none}}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <div class="kicker">&lt;SR/&gt; · SOHAM ROY</div>
+  <h1>Technical <em>Arsenal</em></h1>
+  <p class="lede">Four ways to look at the same toolkit — every one of them is 3D and reacts to your mouse. Built from my CV: Node.js / TypeScript, NestJS, AWS, and agentic&nbsp;AI.</p>
+  <div class="hint"><i></i> move your mouse · hover everything · drag the globe</div>
+</header>
+<nav><div class="wrap">
+  <a href="#stack">01 · stack</a><a href="#map">02 · skill map</a><a href="#breakdown">03 · breakdown</a><a href="#shipped">04 · shipped</a>
+</div></nav>
+
+<main class="wrap">
+  <section id="stack">
+    <h2>// 01 · THE STACK AT A GLANCE</h2>
+    <h3>Skills that ship</h3>
+    <p class="sub">Each slab tilts toward your cursor; the tiles float above it. Hover a tile to pull it forward.</p>
+    <div class="slabs" id="slabs"></div>
+  </section>
+
+  <section id="map">
+    <h2>// 02 · THE SKILL MAP</h2>
+    <h3>A globe of skills</h3>
+    <p class="sub">Seven areas orbit a core. Move across the globe to spin it, hover an area to light up its skills.</p>
+    <div class="stage" id="globeStage">
+      <canvas id="globe" height="620"></canvas>
+      <div class="card" id="globeCard"><b>Soham Roy</b><p>Hover a planet to see what lives there.</p></div>
+    </div>
+  </section>
+
+  <section id="breakdown">
+    <h2>// 03 · THE BREAKDOWN</h2>
+    <h3>52 technologies, 7 areas</h3>
+    <p class="sub">Move up and down to tilt the donut, left and right to spin it. Hover a slice — or a legend row — to pull it out.</p>
+    <div class="stage donutwrap">
+      <canvas id="donut" height="470"></canvas>
+      <div class="legend" id="legend"></div>
+    </div>
+  </section>
+
+  <section id="shipped">
+    <h2>// 04 · WHERE I'VE SHIPPED IT</h2>
+    <h3>The cube heatmap</h3>
+    <p class="sub">Every cube is a technology named in that role on my CV. The board follows your cursor; hover a cube to lift it and light up its row and role.</p>
+    <div class="stage">
+      <div class="board" id="board"><div class="grid3d" id="grid3d"></div>
+        <div class="hlegend" id="hlegend"></div></div>
+    </div>
+  </section>
+</main>
+<footer>Built with plain HTML, CSS 3D transforms and canvas · <a href="https://sohamroy.com" target="_blank" rel="noopener">sohamroy.com</a></footer>
+<div id="tip"></div>
+
+<script>
+/* ============================== DATA ============================== */
+const CATS = {
+  backend:  {label:"Backend & APIs",    color:"#a855f7", text:"#ffffff"},
+  ai:       {label:"AI / LLM",          color:"#14b8a6", text:"#04201c"},
+  frontend: {label:"Frontend",          color:"#fb923c", text:"#2a1100"},
+  cloud:    {label:"Cloud & DevOps",    color:"#38bdf8", text:"#031a2b"},
+  data:     {label:"Data",              color:"#eab308", text:"#2a2000"},
+  security: {label:"Security & Testing",color:"#f43f5e", text:"#ffffff"},
+  practice: {label:"Practices",         color:"#e879f9", text:"#2b0630"}
+};
+const SKILLS = {
+  backend:["Node.js","TypeScript","JavaScript ES6+","NestJS","Express.js","Java","Spring Boot","GraphQL","REST","OpenAPI","RabbitMQ"],
+  ai:["Agentic AI","LLM APIs","Tool Calling","Prompt Engineering","Guardrails","Claude Code"],
+  frontend:["React","HTML5","CSS3"],
+  cloud:["AWS","Lambda","SNS / SQS","S3","Secrets Manager","CloudWatch","Docker","Kubernetes","GitHub Actions","Git","GCP Pub/Sub","Firebase","New Relic"],
+  data:["PostgreSQL","MySQL","MongoDB","DynamoDB","TypeORM"],
+  security:["OAuth 2.0","OIDC","JWT","AWS IAM","Zero Trust","PII Masking","Audit Logging","Jest","API Testing"],
+  practice:["Agile","System Design","Mentoring","Code Review","Production Support"]
+};
+const ORDER = ["backend","ai","frontend","cloud","data","security","practice"];
+const COLS = [["Synechron","2025–"],["Astria","2024"],["Light Zip","2023"],["Aspire","2022"],["Lynk","2021"],["Cognizant","2019"]];
+const ROWS = [
+  ["Node.js / TypeScript","backend",[1,1,1,1,1,1]],["NestJS","backend",[1,0,1,1,0,0]],["Express.js","backend",[0,0,1,0,0,1]],
+  ["Java / Spring Boot","backend",[1,1,0,0,0,0]],["GraphQL","backend",[0,0,1,0,0,1]],["React","frontend",[0,1,0,0,0,0]],
+  ["AWS Lambda / Serverless","cloud",[0,0,1,1,1,0]],["SNS / SQS","cloud",[0,0,1,0,1,0]],["Kubernetes","cloud",[0,0,1,0,0,0]],
+  ["GCP Pub/Sub · Firebase","cloud",[0,0,0,1,0,0]],["CI/CD automation","cloud",[0,1,0,0,0,0]],["PostgreSQL","data",[1,0,0,0,0,0]],
+  ["MySQL","data",[0,0,1,1,0,0]],["MongoDB","data",[0,0,0,1,0,0]],["DynamoDB","data",[0,0,1,0,1,0]],["TypeORM","data",[0,0,1,0,0,1]],
+  ["LLM agents · Claude Code","ai",[1,0,0,0,0,0]],["OAuth · Secrets Manager","security",[0,0,1,0,0,0]],["Jest test automation","security",[0,1,0,0,0,0]]
+];
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = s => document.querySelector(s);
+const tip = $("#tip");
+function showTip(e, title, sub, color){
+  tip.innerHTML = title + (sub ? `<small>${sub}</small>` : "");
+  tip.style.setProperty("--tc", color || "#a855f7");
+  tip.style.left = e.clientX + "px"; tip.style.top = e.clientY + "px"; tip.classList.add("show");
+}
+function moveTip(e){ tip.style.left = e.clientX + "px"; tip.style.top = e.clientY + "px"; }
+function hideTip(){ tip.classList.remove("show"); }
+
+/* ============================== VIEW 1 · TILT SLABS ============================== */
+(function(){
+  const host = $("#slabs");
+  ORDER.forEach(k=>{
+    const c = CATS[k];
+    const slab = document.createElement("div");
+    slab.className = "slab"; slab.style.setProperty("--c", c.color);
+    slab.innerHTML = `<h4><b></b>${c.label.replace("&","&amp;")}<span>${SKILLS[k].length}</span></h4><div class="chips"></div>`;
+    const chips = slab.querySelector(".chips");
+    SKILLS[k].forEach((s,i)=>{
+      const b = document.createElement("span"); b.className = "chip"; b.textContent = s;
+      b.style.setProperty("--c", c.color); b.style.setProperty("--t", c.text);
+      b.addEventListener("pointerenter", e=>showTip(e, s, c.label.replace("&","&amp;"), c.color));
+      b.addEventListener("pointermove", moveTip);
+      b.addEventListener("pointerleave", hideTip);
+      chips.appendChild(b);
+    });
+    slab.addEventListener("pointermove", e=>{
+      if (REDUCED) return;
+      const r = slab.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      slab.style.transform = `rotateX(${((0.5 - y) * 16).toFixed(2)}deg) rotateY(${((x - 0.5) * 20).toFixed(2)}deg) translateZ(8px)`;
+      slab.style.setProperty("--mx", (x*100)+"%"); slab.style.setProperty("--my", (y*100)+"%");
+    });
+    slab.addEventListener("pointerenter", ()=>{ slab.classList.add("on"); host.classList.add("focus"); });
+    slab.addEventListener("pointerleave", ()=>{ slab.classList.remove("on"); host.classList.remove("focus"); slab.style.transform = ""; });
+    host.appendChild(slab);
+  });
+})();
+
+/* ============================== helpers for canvas ============================== */
+function fitCanvas(cv){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = cv.clientWidth, h = parseInt(cv.getAttribute("height"));
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  const ctx = cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx, w, h};
+}
+function shade(hex, f){ // f>0 lighten, f<0 darken
+  const n = parseInt(hex.slice(1), 16); let r = n>>16, g = (n>>8)&255, b = n&255;
+  if (f >= 0){ r += (255-r)*f; g += (255-g)*f; b += (255-b)*f; } else { r *= 1+f; g *= 1+f; b *= 1+f; }
+  return `rgb(${r|0},${g|0},${b|0})`;
+}
+function visibleOnly(cv, cb){ // only animate while on screen
+  let on = true;
+  new IntersectionObserver(es => { on = es[0].isIntersecting; }, {threshold: 0}).observe(cv);
+  return () => on;
+}
+
+/* ============================== VIEW 2 · SKILL GLOBE ============================== */
+(function(){
+  const cv = $("#globe"), stage = $("#globeStage"), card = $("#globeCard");
+  let ctx, W, H;
+  let size = fitCanvas(cv); ctx = size.ctx; W = size.w; H = size.h;
+  addEventListener("resize", ()=>{ size = fitCanvas(cv); ctx = size.ctx; W = size.w; H = size.h; });
+  const isOn = visibleOnly(cv);
+
+  // build nodes
+  const R = Math.min(250, Math.max(150, W * 0.24)), cats = [], skills = [];
+  ORDER.forEach((k, i) => {
+    const y = 1 - (i + 0.5) / ORDER.length * 2, rr = Math.sqrt(1 - y*y), th = i * 2.399963;
+    const p = [Math.cos(th)*rr*R, y*R, Math.sin(th)*rr*R];
+    const cat = {k, p, r: 17 + Math.sqrt(SKILLS[k].length) * 4, c: CATS[k]}; cats.push(cat);
+    const n = SKILLS[k].length, lr = (R * 0.2) + n * 3.4;
+    SKILLS[k].forEach((s, j) => {
+      const yy = n === 1 ? 0 : 1 - (j + 0.5) / n * 2, r2 = Math.sqrt(1 - yy*yy), t2 = j * 2.399963 + i;
+      skills.push({k, name: s, cat, off: [Math.cos(t2)*r2*lr, yy*lr, Math.sin(t2)*r2*lr]});
+    });
+  });
+
+  let yaw = 0.6, pitch = -0.25, vyaw = 0.004, tpitch = -0.25, over = false, mx = 0, my = 0, hov = null, hovCat = null, drag = false, lx = 0, ly = 0;
+  const FOV = 760;
+  function rot(v){
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+    let x = v[0]*cy + v[2]*sy, z = -v[0]*sy + v[2]*cy, y = v[1];
+    const y2 = y*cp - z*sp, z2 = y*sp + z*cp;
+    return [x, y2, z2];
+  }
+  function proj(v){ const s = FOV / (FOV + v[2] + 160); return {x: W/2 + v[0]*s, y: H/2 + v[1]*s, s, z: v[2]}; }
+
+  cv.addEventListener("pointermove", e => {
+    const r = cv.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; over = true;
+    if (drag){ yaw += (mx - lx) * 0.01; pitch = Math.max(-1.2, Math.min(1.2, pitch + (my - ly) * 0.01)); tpitch = pitch; }
+    lx = mx; ly = my;
+    moveTip(e);
+  });
+  cv.addEventListener("pointerdown", e => { drag = true; cv.style.cursor = "grabbing"; lx = e.clientX - cv.getBoundingClientRect().left; ly = e.clientY - cv.getBoundingClientRect().top; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointerup", () => { drag = false; cv.style.cursor = "grab"; });
+  cv.addEventListener("pointerleave", () => { over = false; hov = null; hovCat = null; hideTip(); setCard(null); });
+
+  function setCard(cat){
+    if (!cat){ card.innerHTML = "<b>Soham Roy</b><p>Hover a planet to see what lives there.</p>"; card.style.borderColor = ""; return; }
+    card.style.borderColor = cat.c.color;
+    card.innerHTML = `<b style="color:${cat.c.color}">${cat.c.label.replace("&","&amp;")}</b><p>${SKILLS[cat.k].join(" · ")}</p>`;
+  }
+
+  function frame(){
+    requestAnimationFrame(frame);
+    if (!isOn()) return;
+    if (!drag){
+      if (over && !REDUCED){ vyaw += (((mx / W) - 0.5) * 0.05 - vyaw) * 0.08; tpitch = ((my / H) - 0.5) * -0.9; }
+      else if (!REDUCED){ vyaw += (0.004 - vyaw) * 0.04; }
+      else vyaw = 0;
+      yaw += vyaw; pitch += (tpitch - pitch) * 0.06;
+    }
+    ctx.clearRect(0, 0, W, H);
+
+    // transform all
+    const items = [];
+    const hub = proj([0, 0, 0]);
+    cats.forEach(c => { const v = rot(c.p), p = proj(v); items.push({t: "cat", c, p, v}); });
+    skills.forEach(s => { const cp = rot(s.cat.p), o = rot(s.off); const v = [cp[0]+o[0], cp[1]+o[1], cp[2]+o[2]]; items.push({t: "sk", s, p: proj(v), v}); });
+    items.sort((a, b) => b.p.z - a.p.z);
+
+    // hit test (front-most first)
+    let best = null, bd = 1e9;
+    if (over && !drag){
+      items.forEach(it => {
+        const rad = (it.t === "cat" ? it.c.r : 7) * it.p.s + 5;
+        const d = Math.hypot(it.p.x - mx, it.p.y - my);
+        if (d < rad && it.p.z - d*0.01 < bd){ bd = it.p.z - d*0.01; best = it; }
+      });
+    }
+    const newCat = best ? (best.t === "cat" ? best.c : best.s.cat) : null;
+    if (newCat !== hovCat){ hovCat = newCat; setCard(hovCat); }
+    const prevHov = hov; hov = best;
+    if (best && (!prevHov || prevHov !== best)){ /* tooltip handled below */ }
+    cv.style.cursor = drag ? "grabbing" : best ? "pointer" : "grab";
+
+    // orbit rings (equator + tilted)
+    ctx.save(); ctx.strokeStyle = "rgba(168,85,247,.18)"; ctx.lineWidth = 1; ctx.setLineDash([3, 7]);
+    [[0.0, 1], [0.8, 0.8], [-0.8, 0.8]].forEach(([ty, sc]) => {
+      ctx.beginPath();
+      for (let a = 0; a <= 64; a++){ const t = a / 64 * Math.PI * 2; const v = rot([Math.cos(t)*R*sc, ty*R*0.5 + Math.sin(t*2)*0, Math.sin(t)*R*sc]); const p = proj(v); a ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y); }
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    // links hub->cat
+    items.filter(i => i.t === "cat").forEach(it => {
+      const dim = hovCat && hovCat !== it.c;
+      ctx.strokeStyle = it.c.c.color; ctx.globalAlpha = dim ? .06 : (0.18 + 0.25 * it.p.s); ctx.lineWidth = hovCat === it.c ? 2 : 1;
+      ctx.beginPath(); ctx.moveTo(hub.x, hub.y); ctx.lineTo(it.p.x, it.p.y); ctx.stroke(); ctx.globalAlpha = 1;
+    });
+
+    // draw back half, hub, front half
+    const drawItem = it => {
+      const dim = hovCat && ((it.t === "cat" ? it.c : it.s.cat) !== hovCat);
+      const depthA = 0.45 + 0.55 * Math.min(1, Math.max(0, 1 - (it.p.z + 200) / 520));
+      ctx.globalAlpha = (dim ? 0.18 : 1) * depthA;
+      if (it.t === "cat"){
+        const col = it.c.c.color, hot = hovCat === it.c, r = it.c.r * it.p.s * (hot ? 1.35 : 1);
+        const g = ctx.createRadialGradient(it.p.x - r*0.35, it.p.y - r*0.4, r*0.1, it.p.x, it.p.y, r);
+        g.addColorStop(0, shade(col, .7)); g.addColorStop(.45, col); g.addColorStop(1, shade(col, -.7));
+        ctx.save(); ctx.shadowColor = col; ctx.shadowBlur = hot ? 36 : 14;
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(it.p.x, it.p.y, r, 0, 7); ctx.fill(); ctx.restore();
+        ctx.fillStyle = it.c.c.text; ctx.font = `800 ${Math.max(10, 12*it.p.s)}px JetBrains Mono, monospace`; ctx.textAlign = "center";
+        ctx.fillText(SKILLS[it.c.k].length, it.p.x, it.p.y + 4*it.p.s);
+        ctx.font = `700 ${Math.max(10, 11.5*it.p.s)}px JetBrains Mono, monospace`;
+        ctx.lineWidth = 3; ctx.strokeStyle = "#0a0714"; ctx.fillStyle = col;
+        ctx.strokeText(it.c.c.label, it.p.x, it.p.y + r + 15*it.p.s); ctx.fillText(it.c.c.label, it.p.x, it.p.y + r + 15*it.p.s);
+      } else {
+        const col = it.s.cat.c.color, hot = hovCat === it.s.cat, me = best === it, r = (me ? 8 : hot ? 6 : 4) * it.p.s;
+        ctx.save(); ctx.shadowColor = col; ctx.shadowBlur = me ? 22 : hot ? 12 : 4;
+        ctx.fillStyle = shade(col, me ? .5 : .25); ctx.beginPath(); ctx.arc(it.p.x, it.p.y, r, 0, 7); ctx.fill(); ctx.restore();
+        if (hot){ // label pill
+          ctx.font = `600 ${Math.max(10, 11*it.p.s)}px JetBrains Mono, monospace`; const tw = ctx.measureText(it.s.name).width;
+          const px = it.p.x + 10*it.p.s, py = it.p.y;
+          ctx.globalAlpha = Math.max(.35, depthA); ctx.fillStyle = "rgba(10,7,20,.88)";
+          ctx.beginPath(); ctx.roundRect(px - 4, py - 10, tw + 12, 20, 6); ctx.fill();
+          ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.stroke();
+          ctx.fillStyle = me ? "#fff" : "#e9d5ff"; ctx.textAlign = "left"; ctx.fillText(it.s.name, px + 2, py + 4);
+        }
+      }
+      ctx.globalAlpha = 1;
+    };
+    const mid = items.findIndex(i => i.p.z <= 0);
+    const back = mid < 0 ? items : items.slice(0, mid), front = mid < 0 ? [] : items.slice(mid);
+    back.forEach(drawItem);
+    // hub
+    const hr = 46 * hub.s, hg = ctx.createRadialGradient(hub.x - hr*.35, hub.y - hr*.4, hr*.1, hub.x, hub.y, hr);
+    hg.addColorStop(0, "#f5d0fe"); hg.addColorStop(.35, "#a855f7"); hg.addColorStop(1, "#3b0764");
+    ctx.save(); ctx.shadowColor = "#a855f7"; ctx.shadowBlur = 40; ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(hub.x, hub.y, hr, 0, 7); ctx.fill(); ctx.restore();
+    ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.font = `800 14px JetBrains Mono, monospace`; ctx.fillText("<SR/>", hub.x, hub.y + 2);
+    ctx.font = `600 8px JetBrains Mono, monospace`; ctx.fillStyle = "#f3e8ff"; ctx.fillText("SOHAM ROY", hub.x, hub.y + 15);
+    front.forEach(drawItem);
+
+    // tooltip for skill nodes
+    if (best && best.t === "sk"){ tip.innerHTML = best.s.name + `<small>${best.s.cat.c.label.replace("&","&amp;")}</small>`; tip.style.setProperty("--tc", best.s.cat.c.color); tip.classList.add("show"); }
+    else if (best && best.t === "cat"){ tip.innerHTML = best.c.c.label.replace("&","&amp;") + `<small>${SKILLS[best.c.k].length} technologies</small>`; tip.style.setProperty("--tc", best.c.c.color); tip.classList.add("show"); }
+    else hideTip();
+  }
+  frame();
+})();
+
+/* ============================== VIEW 3 · 3D DONUT ============================== */
+(function(){
+  const cv = $("#donut"), legend = $("#legend");
+  let size = fitCanvas(cv), ctx = size.ctx, W = size.w, H = size.h;
+  addEventListener("resize", ()=>{ size = fitCanvas(cv); ctx = size.ctx; W = size.w; H = size.h; });
+  const isOn = visibleOnly(cv);
+  const data = [["cloud",13],["backend",11],["security",9],["ai",6],["data",5],["practice",5],["frontend",3]];
+  const total = data.reduce((a, d) => a + d[1], 0), max = data[0][1];
+  const ex = data.map(() => 0); let hover = -1, tilt = 0.5, tTilt = 0.5, spin = 0, vspin = 0.003, over = false, mx = 0, my = 0;
+
+  data.forEach(([k, n], i) => {
+    const c = CATS[k], row = document.createElement("div"); row.className = "lg";
+    row.innerHTML = `<i style="background:${c.color}"></i><span style="color:${c.color};font-weight:700">${c.label.replace("&","&amp;")}</span><strong>${n}</strong><div class="bar"><u style="width:0;background:${c.color}"></u></div>`;
+    row.addEventListener("pointerenter", () => { hover = i; });
+    row.addEventListener("pointerleave", () => { hover = -1; });
+    legend.appendChild(row);
+    new IntersectionObserver((es, ob) => { if (es[0].isIntersecting){ row.querySelector("u").style.width = (n / max * 100) + "%"; ob.disconnect(); } }).observe(row);
+  });
+  const rows = [...legend.children];
+
+  cv.addEventListener("pointermove", e => { const r = cv.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; over = true; moveTip(e); });
+  cv.addEventListener("pointerleave", () => { over = false; hover = -1; hideTip(); });
+
+  function seg(){ let a = -Math.PI/2 + spin; return data.map(([k, n]) => { const s0 = a, s1 = a + Math.PI*2*n/total; a = s1; return [s0, s1]; }); }
+  function visible(s0, s1, front){
+    const out = []; let k = Math.floor(s0 / Math.PI) - 1;
+    while (k * Math.PI < s1){
+      const lo = k * Math.PI, hi = (k + 1) * Math.PI, isFront = (((k % 2) + 2) % 2 === 0);
+      if (isFront === front){ const a = Math.max(lo, s0), b = Math.min(hi, s1); if (b - a > 1e-6) out.push([a, b]); }
+      k++;
+    }
+    return out;
+  }
+  function frame(){
+    requestAnimationFrame(frame);
+    if (!isOn()) return;
+    const cx = W * 0.5, R = Math.min(W * 0.4, 190), rin = R * 0.46;
+    if (over && !REDUCED){ tTilt = 0.28 + (my / H) * 0.6; vspin += (((mx / W) - 0.5) * 0.03 - vspin) * 0.08; }
+    else if (!REDUCED){ vspin += (0.003 - vspin) * 0.04; }
+    tilt += (tTilt - tilt) * 0.08; spin += vspin;
+    const Ry = R * tilt, riy = rin * tilt, depth = 40 * Math.sqrt(1 - tilt*tilt) + 6, cy = H * 0.5 - depth * 0.5;
+    const segs = seg();
+
+    // hover detection from pointer (undo the ellipse projection)
+    if (over){
+      const ux = mx - cx, uy = (my - cy) / tilt, r = Math.hypot(ux, uy);
+      let found = -1;
+      if (r >= rin - 4 && r <= R + 10){
+        let a = Math.atan2(uy, ux);
+        segs.forEach(([s0, s1], i) => { let t = a; while (t < s0) t += Math.PI*2; while (t >= s0 + Math.PI*2) t -= Math.PI*2; if (t >= s0 && t < s1 + 1e-9) found = i; });
+      }
+      hover = found >= 0 ? found : (rows.some(r => r.matches(":hover")) ? hover : -1);
+      if (found >= 0){ const [k, n] = data[found], c = CATS[k]; tip.innerHTML = `${c.label.replace("&","&amp;")}<small>${n} of ${total} · ${Math.round(n/total*100)}%</small>`; tip.style.setProperty("--tc", c.color); tip.classList.add("show"); } else hideTip();
+    }
+    rows.forEach((r, i) => r.classList.toggle("on", i === hover));
+    cv.style.cursor = hover >= 0 && over ? "pointer" : "default";
+    data.forEach((_, i) => { ex[i] += ((i === hover ? 1 : 0) - ex[i]) * 0.14; });
+
+    ctx.clearRect(0, 0, W, H);
+    // ground shadow
+    const sg = ctx.createRadialGradient(cx, cy + depth + Ry*0.2, 10, cx, cy + depth + Ry*0.2, R * 1.1);
+    sg.addColorStop(0, "rgba(0,0,0,.55)"); sg.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.save(); ctx.translate(0, 0); ctx.fillStyle = sg; ctx.beginPath(); ctx.ellipse(cx, cy + depth + Ry*0.35, R*1.1, Ry*0.5 + 8, 0, 0, 7); ctx.fill(); ctx.restore();
+
+    const off = i => { const m = (segs[i][0] + segs[i][1]) / 2, e = ex[i]; return [Math.cos(m) * 26 * e, Math.sin(m) * 26 * tilt * e - 12 * e]; };
+    // inner walls first
+    segs.forEach(([s0, s1], i) => {
+      const [dx, dy] = off(i), c = CATS[data[i][0]].color;
+      visible(s0, s1, false).forEach(([a, b]) => {
+        ctx.beginPath(); ctx.ellipse(cx + dx, cy + dy, rin, riy, 0, a, b, false);
+        ctx.lineTo(cx + dx + rin*Math.cos(b), cy + dy + riy*Math.sin(b) + depth);
+        ctx.ellipse(cx + dx, cy + dy + depth, rin, riy, 0, b, a, true); ctx.closePath();
+        ctx.fillStyle = shade(c, -.62); ctx.fill();
+      });
+    });
+    // slices back -> front
+    const order = segs.map((s, i) => i).sort((a, b) => Math.sin((segs[a][0]+segs[a][1])/2) - Math.sin((segs[b][0]+segs[b][1])/2));
+    order.forEach(i => {
+      const [s0, s1] = segs[i], [dx, dy] = off(i), [k, n] = data[i], c = CATS[k], x = cx + dx, y = cy + dy;
+      const hot = i === hover;
+      ctx.save(); if (hot){ ctx.shadowColor = c.color; ctx.shadowBlur = 30; }
+      visible(s0, s1, true).forEach(([a, b]) => {
+        ctx.beginPath(); ctx.ellipse(x, y, R, Ry, 0, a, b, false);
+        ctx.lineTo(x + R*Math.cos(b), y + Ry*Math.sin(b) + depth);
+        ctx.ellipse(x, y + depth, R, Ry, 0, b, a, true); ctx.closePath();
+        ctx.fillStyle = shade(c.color, hot ? -.35 : -.5); ctx.fill();
+      });
+      ctx.restore();
+      // top face
+      ctx.beginPath(); ctx.ellipse(x, y, R, Ry, 0, s0, s1, false); ctx.ellipse(x, y, rin, riy, 0, s1, s0, true); ctx.closePath();
+      const g = ctx.createLinearGradient(0, y - Ry, 0, y + Ry); g.addColorStop(0, shade(c.color, hot ? .45 : .28)); g.addColorStop(1, c.color);
+      ctx.fillStyle = g; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = "#0a0714"; ctx.lineJoin = "round"; ctx.stroke();
+      const m = (s0 + s1) / 2, rm = (R + rin) / 2;
+      ctx.fillStyle = c.text; ctx.font = `800 ${hot ? 17 : 15}px JetBrains Mono, monospace`; ctx.textAlign = "center";
+      ctx.fillText(n, x + Math.cos(m) * rm, y + Math.sin(m) * rm * tilt + 5);
+    });
+    ctx.fillStyle = "#f3e8ff"; ctx.textAlign = "center"; ctx.font = "800 32px JetBrains Mono, monospace"; ctx.fillText(total, cx, cy + 4 + depth*0.0);
+    ctx.fillStyle = "#ac97ca"; ctx.font = "600 10px JetBrains Mono, monospace"; ctx.fillText("TECH & PRACTICES", cx, cy + 22);
+  }
+  frame();
+})();
+
+/* ============================== VIEW 4 · CUBE HEATMAP ============================== */
+(function(){
+  const g = $("#grid3d"), board = $("#board");
+  const head = document.createElement("div"); head.className = "hrow head";
+  head.innerHTML = "<div></div>" + COLS.map(c => `<div>${c[0]}<small>${c[1]}</small></div>`).join("");
+  g.appendChild(head);
+  const heads = [...head.children].slice(1);
+  ROWS.forEach(([name, cat, flags]) => {
+    const c = CATS[cat], row = document.createElement("div"); row.className = "hrow";
+    row.innerHTML = `<div class="hname" style="--c:${c.color}"><b></b>${name}</div>`;
+    flags.forEach((f, ci) => {
+      const cell = document.createElement("div"); cell.className = "hcell";
+      if (!f){ cell.innerHTML = '<span class="empty"></span>'; }
+      else {
+        const cube = document.createElement("div"); cube.className = "cube"; cube.style.setProperty("--c", c.color);
+        cube.innerHTML = '<div class="bk"></div><div class="lf"></div><div class="rt"></div><div class="tp"></div><div class="fr"></div>';
+        cube.addEventListener("pointerenter", e => { row.classList.add("hl"); heads[ci].classList.add("hl"); showTip(e, name, `${COLS[ci][0]} · ${COLS[ci][1]} · ${c.label.replace("&","&amp;")}`, c.color); });
+        cube.addEventListener("pointermove", moveTip);
+        cube.addEventListener("pointerleave", () => { row.classList.remove("hl"); heads[ci].classList.remove("hl"); hideTip(); });
+        cell.appendChild(cube);
+      }
+      row.appendChild(cell);
+    });
+    g.appendChild(row);
+  });
+  board.addEventListener("pointermove", e => {
+    if (REDUCED) return;
+    const r = board.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    g.style.transform = `rotateX(${(12 + (0.5 - y) * 10).toFixed(2)}deg) rotateY(${((x - 0.5) * 12).toFixed(2)}deg)`;
+  });
+  board.addEventListener("pointerleave", () => { g.style.transform = "rotateX(12deg) rotateY(0deg)"; });
+  g.style.transform = "rotateX(12deg) rotateY(0deg)";
+  const L = $("#hlegend");
+  ["backend","cloud","data","ai","frontend","security"].forEach(k => { L.insertAdjacentHTML("beforeend", `<span><i style="background:${CATS[k].color}"></i>${CATS[k].label.replace("&","&amp;")}</span>`); });
+})();
+</script>
+</body>
+</html>
